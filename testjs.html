@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test JS</title>
+    <style>
+        body {
+            background-color: #333;
+        }
+
+        p {
+            color: white;
+            text-align: center;
+            font-size: 1em;
+            position: relative;
+        }
+
+        /* Center the title and set its font size */
+        h1 {
+            font-size: 3em;
+            text-align: center;
+            margin-top: 1em;
+            position: relative;
+            z-index: 1;
+            color: #fff;
+            text-shadow: 0 0 10px #000;
+            animation: floating 3s ease-in-out infinite alternate;
+        }
+
+        textarea {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: auto;
+            resize: vertical;
+            width: 75%;
+            height: 300px;
+            padding: 20px;
+            border: 7px solid grey;
+        }
+
+        .centered {
+            align-items: center;
+        }
+
+        /* Create a container for the buttons */
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 2em;
+        }
+
+        /* Style the buttons */
+        .button {
+            text-align: center;
+            align-self: center;
+            padding: 1em 2em;
+            border-radius: 1em;
+            margin: 0 1em;
+            position: relative;
+            z-index: 1;
+            background-color: #fff;
+            color: #333;
+            box-shadow: 0 0 10px #000;
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Style the "Yes" button */
+        .yes-button:hover {
+            background-color: #4caf50;
+            color: #141414;
+            box-shadow: 0 0 20px #4caf50;
+            transform: translate(0px, -10px);
+            z-index: 2;
+            font-size: 2em;
+        }
+
+        /* Style the "No" button */
+        .no-button:hover {
+            background-color: blue;
+            color: #141414;
+            box-shadow: 0 0 20px blue;
+            transform: translate(0px, -5px);
+            z-index: 2;
+        }
+
+        /* Make the title float up and down */
+        @keyframes floating {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(0, -10px);
+            }
+        }
+    </style>
+    <script type="importmap">
+        {
+    "imports": {
+        "vue": "https://unpkg.com/vue@3/dist/vue.esm-browser.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import { createApp } from 'vue'
+
+        createApp({
+            data() {
+                return {
+                    mainMenuHidden: false,
+                    quizMePageHidden: true,
+                    val: "Testing123!",
+                    stringOfDict: "",
+                    dictionary: {},
+                    count: 0,
+                    quizTitleText: "Let's go!",
+                    btns: {
+                        0: "",
+                        1: "",
+                        2: "",
+                        3: ""
+                    },
+                    currentCorrectAnswer: "",
+                    msg: "",
+                    answerKeyHidden: true,
+                }
+            },
+            mounted() {
+                
+            },
+            methods: {
+                getRandomInteger(max) {
+                    return Math.floor(Math.random() * max);
+                  },
+
+                  readFileAsString(file, callback) {
+                    const reader = new FileReader();
+                  
+                    reader.onload = function(event) {
+                      const content = event.target.result;
+                      callback(content);
+                    };
+                  
+                    reader.onerror = function(event) {
+                      console.error('Error reading file:', event.target.error);
+                      callback(null);
+                    };
+                  
+                    reader.readAsText(file);
+                  },
+
+                  downloadStringAsFile(content, fileName) {
+                    const blob = new Blob([content], { type: 'text/plain' });
+                    content = "this is a test."
+                    const url = URL.createObjectURL(blob);
+                    const anchor = document.createElement('a');
+                    anchor.href = url;
+                    anchor.download = fileName || 'download.txt';
+                  
+                    document.body.appendChild(anchor);
+                    anchor.click();
+                  
+                    // Clean up
+                    setTimeout(() => {
+                      document.body.removeChild(anchor);
+                      URL.revokeObjectURL(url);
+                    }, 0);
+                  },
+
+                submit() {
+                    this.mainMenuHidden = true;
+                    this.val = document.getElementById("dataTextarea").value
+
+                    this.dictionary = this.parseKeyValueEntries(this.val);
+                    this.stringOfDict = JSON.stringify(this.dictionary)
+                    this.nextQ()
+                },
+
+                nextQ() {
+                    this.answerKeyHidden = true;
+                    if (this.count === Object.keys(this.dictionary).length) {
+                        this.mainMenuHidden = false;
+                        this.count = 0;
+                        return;
+                    }
+                    for (let i = 0; i < 4; i++) {
+                        this.btns[i] = "";
+                    }
+                    console.log(this.dictionary);
+                    console.log(this.dictionary[this.count][1]);
+                    this.currentCorrectAnswer = this.dictionary[this.count][1]
+                    this.quizTitleText = this.dictionary[this.count][0];
+                    try {
+                        this.btns[this.getRandomInteger(4)] = this.currentCorrectAnswer
+                    } catch {
+                        this.btns[3] = this.currentCorrectAnswer
+                    }
+                    for (let i = 0; i < 4; i++) {
+                        if (this.btns[i] !== this.currentCorrectAnswer) {
+                            try {
+                                this.btns[i] = this.dictionary[this.getRandomInteger(Object.keys(this.dictionary).length)][1]
+                            } catch {
+                                this.btns[i] = this.dictionary[0][1]
+                            }
+                        }
+                    }
+                    this.count = this.count + 1;
+                    this.quizMePageHidden = false;
+
+
+                    // Set the values of the buttons equal to [0] - [3] of a dictionary of answers. Set a variable with the current correct answer. 
+                    // function that returns what answer its button has, which is then checked to see if it is the correct answer.
+                },
+
+                answer(ans) {
+                    this.quizMePageHidden = true;
+                    this.answerKeyHidden = false;
+                    console.log(ans);
+                    if (ans === this.currentCorrectAnswer) {
+                        this.msg = "Correct!"
+                    } else {
+                        this.msg = "That was the wrong answer."
+                    }
+                },
+             
+                parseKeyValueEntries(input) {
+                    const lines = input.split('\n');
+                    const dictionary = {};
+                    let count = 0;
+                    for (const line of lines) {
+                      //<!-- const [key, value] = line.split('!%!'); -->
+                      dictionary[count] = line.split('!%!');
+                      count = count + 1;
+                    }
+                    return dictionary;
+                  }
+                  
+             
+            }
+
+        }).mount('#app');
+    </script>
+
+</head>
+
+<body id="app">
+    <section class="centered" id="mainMenu" :hidden="mainMenuHidden">
+        <h1>Welcome to Test JS!</h1>
+        <textarea id="dataTextarea"
+            placeholder="Put your data here!&#10;&#13;Key-value pairs should be seperated by a '!%!' and pairs should be seperated by new lines."></textarea>
+        <br>
+        <center><button id="beginDataBtn" @click="submit()" class="button yes-button">Begin!</button></center>
+    </section>
+    <section id="quizMe" :hidden="quizMePageHidden">
+        <h1 id="quizTitle">{{quizTitleText}}</h1>
+        <div class="button-container">
+            <table>
+                <tr>
+                    <td><button class="button no-button" id="btn1" @click="answer(btns[0])">{{btns[0]}}</button></td>
+                    <td><button class="button no-button" id="btn2" @click="answer(btns[1])">{{btns[1]}}</button></td>
+                </tr>
+                <tr>
+                    <td><button class="button no-button" id="btn3" @click="answer(btns[2])">{{btns[2]}}</button></td>
+                    <td><button class="button no-button" id="btn4" @click="answer(btns[3])">{{btns[3]}}</button></td>
+                </tr>
+            </table>
+        </div>
+    </section>
+    <section id="answer" :hidden="answerKeyHidden">
+        <h1>{{msg}}</h1>
+        <p><b>Correct answer:<br></b>{{currentCorrectAnswer}}</p>
+        <div class="button-container"><button class="button yes-button" @click="nextQ()">Next Question</button></div>
+
+    </section>
+
+</body>
+
+</html>
